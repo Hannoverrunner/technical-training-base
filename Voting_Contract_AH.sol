@@ -49,7 +49,7 @@ contract Poll {
 
     address public chairperson;
     mapping(address => Voter) public voters;
-    mapping(address => bool) bannedAdresses;
+    mapping(address => bool) bannedAdresses; // Task 2, Step 2a
     Proposal[] public proposals;
 
     constructor() public {
@@ -63,6 +63,7 @@ contract Poll {
         );
     }
     
+    // Task 2, Step 2b
     function banVoter(address bannedVoter) public {
         require(msg.sender == chairperson);
         bannedAdresses[bannedVoter] = true;
