@@ -2,6 +2,19 @@ pragma solidity ^0.5.0;
 
 // (c) BokkyPooBah / Bok Consulting Pty Ltd 2018. The MIT Licence.
 
+/*
+Task 1
+Modify the details of the Token (e.g. name of token) and deploy your own ERC20 Token to the private blockchain.
+Send an arbitrary amount/number of token to another account and check the balance afterwards.
+
+Task 2
+Similar to Task 3 of the previous exercise the ERC20 Token interface includes functions to transfer funds on account of somebody else.
+You can see that there are three functions in the code without content.
+Complete the three empty passages to:
+2-1 delegate own coins to somebody else
+2-2 spend coins of somebody else
+2-3 return the actual value one address delegated to another one
+*/
 
 // Safe maths library
 library SafeMath {
@@ -51,7 +64,7 @@ contract Owned {
     }
 
     modifier onlyOwner {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "You shall not pass!");
         _;
     }
 
@@ -82,8 +95,8 @@ contract FixedSupplyToken is ERC20Interface, Owned {
 
     // Constructor
     constructor() public {
-        symbol = "TTT";
-        name = "Technical Training Token";
+        symbol = "GGG";
+        name = "G-g-g...G-UNIT";
         _totalSupply = 1_000_000;
         balances[owner] = _totalSupply;
         emit Transfer(address(0), owner, _totalSupply);
@@ -107,21 +120,30 @@ contract FixedSupplyToken is ERC20Interface, Owned {
         return true;
     }
 
-    // Token owner can approve for `spender` to transferFrom(...) `tokens`
-    // from the token owner's account
+    // Token owner can approve for `spender` to transferFrom(...) `tokens` from the token owner's account
     function approve(address spender, uint tokens) public returns (bool success) {
+        allowed[msg.sender][spender] = tokens; // allowance will not deductor freeze tokens at this point
         return true;
     }
 
     // Transfer `tokens` from the `from` account to the `to` account
     function transferFrom(address from, address to, uint tokens) public returns (bool success) {
+        require((msg.sender == from || allowed[from][msg.sender] != 0), "Sorry, you have no business here!");
+        require((balances[from] >= tokens && allowed[from][msg.sender] >= tokens), "Oops, not enough balance / allowance!");
+        
+        balances[from] = balances[from].sub(tokens);
+        balances[to] = balances[to].add(tokens);
+        allowed[from][msg.sender] = allowed[from][msg.sender].sub(tokens);
+        emit Transfer(from, to, tokens);
+        
         return true;
     }
 
     // Returns the amount of tokens approved by the owner that can be
     // transferred to the spender's account
     function allowance(address tokenOwner, address spender) public view returns (uint remaining) {
-        return 0;
+        require(allowed[tokenOwner][spender] != 0, "You can't spend money from this"); // we only allow people with an actual allowance to check this
+        return allowed[tokenOwner][spender];
     }
 
     // Don't accept ETH
